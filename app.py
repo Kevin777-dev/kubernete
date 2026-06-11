@@ -8,5 +8,8 @@ def hello_world():
 @app.route('/hello/<username>') # dynamic route
 def hello_user(username):
  return 'Hello %s!\n' % username
+@app.route('/feature/<username>')
+def feature_user(username):
+    return 'Feature %s!' % username
 if __name__ == '__main__':
  app.run(host='0.0.0.0') # open for everyone
