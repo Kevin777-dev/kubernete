@@ -11,18 +11,10 @@ metadata:
     component: ci
 spec:
   containers:
-
-  # ======================
-  # CONTAINER PYTHON (TEST)
-  # ======================
   - name: python
     image: python:3.7
     command: ["cat"]
     tty: true
-
-  # ======================
-  # CONTAINER DOCKER (BUILD)
-  # ======================
   - name: docker
     image: docker:24-cli
     command: ["cat"]
@@ -40,7 +32,6 @@ spec:
         }
     }
 
-    # 🔥 trigger doit être ici (PAS dans stages)
     triggers {
         pollSCM('* * * * *')
     }
