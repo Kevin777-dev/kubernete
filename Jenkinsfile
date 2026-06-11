@@ -30,5 +30,8 @@ spec:
                 }
             }
         }
+        triggers {
+            pollSCM('* * * * *')
+        }
     }
 }
