@@ -12,16 +12,20 @@ metadata:
 spec:
   containers:
 
+  # ======================
+  # CONTAINER PYTHON (TEST)
+  # ======================
   - name: python
     image: python:3.7
-    command:
-      - cat
+    command: ["cat"]
     tty: true
 
+  # ======================
+  # CONTAINER DOCKER (BUILD)
+  # ======================
   - name: docker
-    image: docker
-    command:
-      - cat
+    image: docker:24-cli
+    command: ["cat"]
     tty: true
     volumeMounts:
     - mountPath: /var/run/docker.sock
@@ -31,17 +35,19 @@ spec:
   - name: docker-sock
     hostPath:
       path: /var/run/docker.sock
+      type: Socket
 """
         }
     }
 
+    # 🔥 trigger doit être ici (PAS dans stages)
     triggers {
         pollSCM('* * * * *')
     }
 
     stages {
 
-        stage('Test python') {
+        stage('Test Python') {
             steps {
                 container('python') {
                     sh 'pip install -r requirements.txt'
@@ -50,11 +56,12 @@ spec:
             }
         }
 
-        stage('Build image') {
+        stage('Build Image') {
             steps {
                 container('docker') {
-                    sh "docker build -t localhost:4000/pythontest:latest ."
-                    sh "docker push localhost:4000/pythontest:latest"
+                    sh 'docker version'
+                    sh 'docker build -t localhost:4000/pythontest:latest .'
+                    sh 'docker push localhost:4000/pythontest:latest'
                 }
             }
         }
