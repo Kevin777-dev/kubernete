@@ -1,83 +1,76 @@
 pipeline {
-    agent {
-        kubernetes {
-            label 'jenkins-agent-my-app'
-            defaultContainer 'jnlp'
-            yaml """
+  agent {
+    kubernetes {
+      label 'jenkins-agent-my-app'
+      yaml """
 apiVersion: v1
 kind: Pod
+metadata:
+  labels:
+    component: ci
 spec:
   containers:
-  - name: python
-    image: python:3.9
-    command:
-    - cat
-    tty: true
+    - name: python
+      image: python:3.7
+      command:
+        - cat
+      tty: true
 
-  - name: kaniko
-    image: gcr.io/kaniko-project/executor:latest
-    command:
-    - /busybox/cat
-    tty: true
-    volumeMounts:
-    - name: docker-config
-      mountPath: /kaniko/.docker
+    - name: docker
+      image: docker
+      command:
+        - cat
+      tty: true
+      volumeMounts:
+        - mountPath: /var/run/docker.sock
+          name: docker-sock
+
+    - name: kubectl
+      image: lachlanevenson/k8s-kubectl:v1.17.2
+      command:
+        - cat
+      tty: true
 
   volumes:
-  - name: docker-config
-    emptyDir: {}
+    - name: docker-sock
+      hostPath:
+        path: /var/run/docker.sock
 """
+    }
+  }
+
+  triggers {
+    pollSCM('* * * * *')
+  }
+
+  stages {
+
+    stage('Test python') {
+      steps {
+        container('python') {
+          sh 'pip install -r requirements.txt'
+          sh 'python test.py'
         }
+      }
     }
 
-    stages {
-
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
+    stage('Build image') {
+      steps {
+        container('docker') {
+          sh 'docker build -t localhost:4000/pythontest:latest .'
+          sh 'docker push localhost:4000/pythontest:latest'
         }
-
-        stage('Install dependencies') {
-            steps {
-                container('python') {
-                    sh '''
-                        python -m pip install --upgrade pip
-                        pip install -r requirements.txt
-                    '''
-                }
-            }
-        }
-
-        stage('Test') {
-            steps {
-                container('python') {
-                    sh 'python test.py'
-                }
-            }
-        }
-
-        stage('Build image (Kaniko)') {
-            steps {
-                container('kaniko') {
-                    sh '''
-                        /kaniko/executor \
-                        --context `pwd` \
-                        --dockerfile Dockerfile \
-                        --destination localhost:4000/pythontest:latest \
-                        --insecure
-                    '''
-                }
-            }
-        }
+      }
     }
 
-    post {
-        success {
-            echo "Pipeline OK 🎉"
+    stage('Deploy') {
+      steps {
+        container('kubectl') {
+          sh 'kubectl apply -f ./kubernetes/deployment.yaml'
+          sh 'kubectl apply -f ./kubernetes/service.yaml'
         }
-        failure {
-            echo "Pipeline FAILED ❌"
-        }
+      }
     }
+
+  }
 }
