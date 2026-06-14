@@ -55,10 +55,10 @@ spec:
     stage('Build image') {
       steps {
         container('docker') {
-          sh 'dockerd &'  // démarre le daemon en arrière-plan
-          sh 'sleep 5'    // attend que dockerd soit prêt
-          sh 'docker build -t localhost:4000/pythontest:latest .'
-          sh 'docker push localhost:4000/pythontest:latest'
+          sh 'dockerd &'
+          sh 'sleep 5'
+          sh 'docker build -t dreamy_cartwright:5000/pythontest:latest .'
+          sh 'docker push dreamy_cartwright:5000/pythontest:latest'
         }
       }
     }
