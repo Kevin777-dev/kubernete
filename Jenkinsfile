@@ -22,6 +22,8 @@ spec:
       env:
         - name: DOCKER_TLS_CERTDIR
           value: ""
+        - name: DOCKER_OPTS
+          value: "--insecure-registry kind-registry:5000"
       tty: true
 
     - name: kubectl
@@ -55,9 +57,14 @@ spec:
     stage('Build image') {
       steps {
         container('docker') {
-          sh 'sleep 5'
-          sh 'docker build -t kind-registry:5000/pythontest:latest .'
-          sh 'docker push kind-registry:5000/pythontest:latest'
+          sh '''
+            mkdir -p /etc/docker
+            echo '{"insecure-registries": ["kind-registry:5000"]}' > /etc/docker/daemon.json
+            kill -SIGHUP $(cat /var/run/docker.pid) || true
+            sleep 3
+            docker build -t kind-registry:5000/pythontest:latest .
+            docker push kind-registry:5000/pythontest:latest
+          '''
         }
       }
     }
