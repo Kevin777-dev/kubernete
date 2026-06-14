@@ -1,7 +1,6 @@
 pipeline {
   agent {
     kubernetes {
-      label 'jenkins-agent-my-app'
       yaml """
 apiVersion: v1
 kind: Pod
@@ -26,7 +25,7 @@ spec:
           name: docker-sock
 
     - name: kubectl
-      image: lachlanevenson/k8s-kubectl:v1.17.2
+      image: bitnami/kubectl:latest
       command:
         - cat
       tty: true
