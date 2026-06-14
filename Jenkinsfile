@@ -29,7 +29,9 @@ spec:
     - name: kubectl
       image: bitnami/kubectl:latest
       command:
-        - cat
+        - sleep
+      args:
+        - infinity
       tty: true
 
   volumes:
@@ -59,7 +61,7 @@ spec:
         container('docker') {
           sh '''
             mkdir -p /etc/docker
-            echo '{"insecure-registries": ["kind-registry:5000"]}' > /etc/docker/daemon.json
+            echo \'{"insecure-registries": ["kind-registry:5000"]}\' > /etc/docker/daemon.json
             kill -SIGHUP $(cat /var/run/docker.pid) || true
             sleep 3
             docker build -t kind-registry:5000/pythontest:latest .
