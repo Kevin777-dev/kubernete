@@ -16,13 +16,13 @@ spec:
       tty: true
 
     - name: docker
-      image: docker
-      command:
-        - cat
+      image: docker:dind
+      securityContext:
+        privileged: true
+      env:
+        - name: DOCKER_TLS_CERTDIR
+          value: ""
       tty: true
-      volumeMounts:
-        - mountPath: /var/run/docker.sock
-          name: docker-sock
 
     - name: kubectl
       image: bitnami/kubectl:latest
@@ -32,14 +32,13 @@ spec:
 
   volumes:
     - name: docker-sock
-      hostPath:
-        path: /var/run/docker.sock
+      emptyDir: {}
 """
     }
   }
 
   triggers {
-    pollSCM('H/5 * * * *')  
+    pollSCM('H/5 * * * *')
   }
 
   stages {
@@ -56,6 +55,8 @@ spec:
     stage('Build image') {
       steps {
         container('docker') {
+          sh 'dockerd &'  // démarre le daemon en arrière-plan
+          sh 'sleep 5'    // attend que dockerd soit prêt
           sh 'docker build -t localhost:4000/pythontest:latest .'
           sh 'docker push localhost:4000/pythontest:latest'
         }
