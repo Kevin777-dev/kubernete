@@ -27,11 +27,9 @@ spec:
       tty: true
 
     - name: kubectl
-      image: bitnami/kubectl:latest
+      image: alpine/k8s:1.28.3
       command:
-        - sleep
-      args:
-        - infinity
+        - cat
       tty: true
 
   volumes:
