@@ -55,10 +55,9 @@ spec:
     stage('Build image') {
       steps {
         container('docker') {
-          sh 'dockerd &'
           sh 'sleep 5'
-          sh 'docker build -t dreamy_cartwright:5000/pythontest:latest .'
-          sh 'docker push dreamy_cartwright:5000/pythontest:latest'
+          sh 'docker build -t kind-registry:5000/pythontest:latest .'
+          sh 'docker push kind-registry:5000/pythontest:latest'
         }
       }
     }
